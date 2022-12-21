@@ -14,15 +14,16 @@ def convert_from_env(env: UnityPy.Environment, output_dir: Path):
     for object in env.objects:
         resource = object.read()
         if hasattr(resource, "name"):
-            target_path = Path(output_dir, resource.name)
+            target_path = Path(output_dir, env.path, resource.name)
 
         match object.type.name:
             case "Sprite" | "Texture2D":
+                target_path.parent.mkdir(parents=True, exist_ok=True)
                 resource.image.save(target_path.with_suffix(".png"))
             case "TextAsset":
                 write_bytes(bytes(resource.script), target_path)
             case "AudioClip":
-                write_bytes(bytes.join(resource.samples.items()), target_path.with_suffix(".wav"))
+                write_bytes(b"".join(resource.samples.items()), target_path.with_suffix(".wav"))
             case "MonoBehaviour":
                 if resource.serialized_type.nodes:
                     tree = resource.read_typetree()
