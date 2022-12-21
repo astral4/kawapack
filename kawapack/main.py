@@ -2,7 +2,7 @@ from pathlib import Path
 from shutil import rmtree
 from warnings import warn
 import UnityPy
-from convert_ab import convert
+from .convert_ab import convert
 
 def main(input_dir: str, output_dir: str, overwrite: bool = True):
     input_path = Path(input_dir)
