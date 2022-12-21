@@ -24,8 +24,3 @@ def main(input_dir: str, output_dir: str, overwrite: bool = True):
             environment = UnityPy.load(path.as_posix())
             if len(environment.objects) > 0:
                 convert(environment, output_dir)
-
-
-
-if __name__ == "__main__":
-    main("assets", "results")

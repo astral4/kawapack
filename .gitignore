@@ -3,3 +3,4 @@ assets/
 __pycache__
 .vscode/
 misc/
+dist/
