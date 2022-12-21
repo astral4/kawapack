@@ -2,6 +2,7 @@ from pathlib import Path
 from shutil import rmtree
 from warnings import warn
 import UnityPy
+from convert_ab import convert
 
 def main(input_dir: str, output_dir: str, overwrite: bool = True):
     input_path = Path(input_dir)
@@ -20,9 +21,9 @@ def main(input_dir: str, output_dir: str, overwrite: bool = True):
 
     for path in input_path.glob("**/*.ab"):
         if path.is_file():
-            environment = UnityPy.load(path)
+            environment = UnityPy.load(path.as_posix())
             if len(environment.objects) > 0:
-                pass
+                convert(environment)
 
 
 
