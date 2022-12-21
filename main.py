@@ -23,7 +23,7 @@ def main(input_dir: str, output_dir: str, overwrite: bool = True):
         if path.is_file():
             environment = UnityPy.load(path.as_posix())
             if len(environment.objects) > 0:
-                convert(environment)
+                convert(environment, output_dir)
 
 
 
