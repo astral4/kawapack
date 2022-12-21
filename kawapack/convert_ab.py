@@ -10,7 +10,7 @@ def write_bytes(data: bytes, path: Path):
         f.write(data)
 
 
-def convert(env: UnityPy.Environment, output_dir: Path):
+def convert_from_env(env: UnityPy.Environment, output_dir: Path):
     for object in env.objects:
         resource = object.read()
         if hasattr(resource, "name"):

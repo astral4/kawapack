@@ -2,9 +2,9 @@ from pathlib import Path
 from shutil import rmtree
 from warnings import warn
 import UnityPy
-from .convert_ab import convert
+from .convert_ab import convert_from_env
 
-def main(input_dir: str, output_dir: str, overwrite: bool = True):
+def convert(input_dir: str, output_dir: str, overwrite: bool = True):
     input_path = Path(input_dir)
     output_path = Path(output_dir)
 
@@ -23,4 +23,4 @@ def main(input_dir: str, output_dir: str, overwrite: bool = True):
         if path.is_file():
             environment = UnityPy.load(path.as_posix())
             if len(environment.objects) > 0:
-                convert(environment, output_dir)
+                convert_from_env(environment, output_dir)
