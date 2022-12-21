@@ -10,7 +10,7 @@ def write_bytes(data: bytes, path: Path):
         f.write(data)
 
 
-def convert_from_env(env: UnityPy.Environment, output_dir: Path):
+def convert_from_env(env: UnityPy.Environment, output_dir: Path, show_warnings: bool):
     for object in env.objects:
         resource = object.read()
         if hasattr(resource, "name"):
@@ -35,7 +35,8 @@ def convert_from_env(env: UnityPy.Environment, output_dir: Path):
                     target_path.parent.mkdir(parents=True, exist_ok=True)
                     with open(target_path.with_suffix(".json"), "w", encoding="utf8") as f:
                         json.dump(tree, f, ensure_ascii=False, indent=4)
-                else:
+                elif show_warnings:
                     warn(f"MonoBehaviour at '{env.path}' did not have any nodes to serialize", RuntimeWarning)
             case _:
-                warn(f"Asset type '{object.type.name}' at '{env.path}' is not recognized.", RuntimeWarning)
+                if show_warnings:
+                    warn(f"Asset type '{object.type.name}' at '{env.path}' is not recognized.", RuntimeWarning)
