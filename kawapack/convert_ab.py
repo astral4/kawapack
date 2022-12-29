@@ -2,6 +2,7 @@ from UnityPy import Environment
 from UnityPy.classes import Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
 from pathlib import Path
 import json
+import bson
 from Crypto.Cipher import AES
 
 def write_bytes(data: bytes, path: Path):
@@ -13,6 +14,15 @@ def write_object(data: object, path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path.with_suffix(".json"), "w", encoding="utf8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+def write_binary_object(data: bytes, path: Path):
+    try:
+        decoded = bson.decode(data)
+        write_object(decoded, path)
+    except:
+        # BSON decoding fails if data is JSON-encoded BSON instead of plain BSON
+        json_data = json.loads(data)
+        write_object(json_data, path)
 
 def decrypt_textasset(stream: bytes) -> bytes:
     BITMASK = bytes.fromhex('554954704169383270484157776e7a7148524d4377506f6e4a4c49423357436c').decode()
@@ -49,21 +59,22 @@ def convert_from_env(env: Environment, output_dir: Path):
             elif isinstance(resource, TextAsset):
                 target_path = Path(output_dir, env.path, resource.name)
                 target_path_str = target_path.as_posix()
-                data: bytes
+                data = bytes(resource.script)
 
                 if "gamedata/story" in target_path_str:
                     # Story text is unencrypted, so the data can be directly written
-                    data = bytes(resource.script)
+                    write_bytes(data, target_path)
                 elif "gamedata/levels/" in target_path_str:
-                    data = bytes(resource.script)[128:]
+                    # TODO: Fix mangled data at start of decrypted JSON
+                    data = decrypt_textasset(data)
+                    write_binary_object(data, target_path)
                 else:
                     try:
-                        data = decrypt_textasset(bytes(resource.script))
+                        data = decrypt_textasset(data)
+                        write_binary_object(data, target_path)
                     except:
                         # Decryption will fail if the data is not actually encrypted
-                        data = bytes(resource.script)
-
-                write_bytes(data, target_path)
+                        write_bytes(data, target_path)
             
             elif isinstance(resource, AudioClip):
                 target_path = Path(output_dir, env.path, resource.name)

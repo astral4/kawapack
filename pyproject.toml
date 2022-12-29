@@ -11,6 +11,7 @@ python = "^3.11"
 UnityPy = "^1.9.24"
 Pillow = "^9.3.0"
 pycryptodome = "^3.16.0"
+pymongo = "^4.3.3"
 
 
 [build-system]
