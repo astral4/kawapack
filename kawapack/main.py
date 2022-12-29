@@ -5,7 +5,7 @@ import UnityPy
 from .convert_ab import convert_from_env
 from .combine import combine
 
-def convert(input_dir: Path, output_dir: Path, overwrite: bool = True, show_warnings: bool = True):
+def convert(input_dir: Path, output_dir: Path, overwrite: bool = True):
     if not (input_dir.exists() and input_dir.is_dir()):
         warn("The input directory does not exist.", RuntimeWarning)
         return
@@ -21,7 +21,7 @@ def convert(input_dir: Path, output_dir: Path, overwrite: bool = True, show_warn
         if path.is_file():
             environment = UnityPy.load(path.as_posix())
             if len(environment.objects) > 0:
-                convert_from_env(environment, output_dir, show_warnings)
+                convert_from_env(environment, output_dir)
 
     combine_textures(output_dir)
 
