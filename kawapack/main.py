@@ -6,7 +6,9 @@ import UnityPy
 from .convert_ab import convert_from_env
 from .combine import combine
 
-def convert(input_dir: PathLike, output_dir: PathLike, overwrite: bool = True):
+FilePath = str | PathLike[str]
+
+def convert(input_dir: FilePath, output_dir: FilePath, overwrite: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
