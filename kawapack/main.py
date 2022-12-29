@@ -1,3 +1,4 @@
+from os import PathLike
 from pathlib import Path
 from shutil import rmtree
 from warnings import warn
@@ -5,7 +6,10 @@ import UnityPy
 from .convert_ab import convert_from_env
 from .combine import combine
 
-def convert(input_dir: Path, output_dir: Path, overwrite: bool = True):
+def convert(input_dir: PathLike, output_dir: PathLike, overwrite: bool = True):
+    input_dir = Path(input_dir)
+    output_dir = Path(output_dir)
+
     if not (input_dir.exists() and input_dir.is_dir()):
         warn("The input directory does not exist.", RuntimeWarning)
         return
