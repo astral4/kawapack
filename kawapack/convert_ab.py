@@ -76,7 +76,8 @@ def convert_from_env(env: Environment, output_dir: Path):
             
             elif isinstance(resource, AudioClip):
                 target_path = output_dir.joinpath(env.path, resource.name)
-                write_bytes(b"".join(resource.samples.values()), target_path.with_suffix(".wav"))
+                for audio_name, audio_data in resource.samples.items():
+                    write_bytes(audio_data, target_path.joinpath(audio_name).with_suffix(".wav"))
             
             elif isinstance(resource, MonoBehaviour):
                 target_path = output_dir.joinpath(env.path, resource.name)
