@@ -6,6 +6,14 @@ import bson
 from Crypto.Cipher import AES
 
 
+def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path:
+    if isinstance(obj, MonoBehaviour):
+        return output_dir / container_dir / obj.m_Script.read().name
+
+    assert isinstance(obj.name, str)
+    return output_dir / container_dir / obj.name
+
+
 def write_bytes(data: bytes, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
@@ -50,7 +58,9 @@ def decrypt_textasset(stream: bytes, start_index: int = 128) -> bytes:
     return unpad(decrypted)
 
 
-def export(obj: Object, target_path: Path) -> None:
+def export(obj: Object, output_dir: Path, container_dir: Path) -> None:
+    target_path = get_target_path(obj, output_dir, container_dir)
+
     match obj:
         case Sprite() | Texture2D():
             target_path.parent.mkdir(parents=True, exist_ok=True)
@@ -86,13 +96,8 @@ def convert_from_env(env: Environment, output_dir: Path):
     for object in env.objects:
         if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
-            # Checks for Object instance instead of NamedObject because
-            # some MonoBehaviours are not NamedObjects but still have a name attribute
-            if isinstance(resource, Object) and isinstance(resource.name, str):
-                target_path = output_dir.joinpath(
-                    Path(resource.container).parent if resource.container else env.path,
-                    resource.name
-                )
-                export(resource, target_path)
+            if isinstance(resource, Object):
+                container_dir = Path(resource.container).parent if resource.container else Path(env.path)
+                export(resource, output_dir, container_dir)
         else:
             print(f"{object.type.name} object at {env.path} was not processed")
