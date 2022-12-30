@@ -1,5 +1,5 @@
 from UnityPy import Environment
-from UnityPy.classes import NamedObject, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
+from UnityPy.classes import Object, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
 from pathlib import Path
 import json
 import bson
@@ -50,7 +50,7 @@ def decrypt_textasset(stream: bytes, start_index: int = 128) -> bytes:
     return unpad(decrypted)
 
 
-def export(obj: NamedObject, target_path: Path) -> None:
+def export(obj: Object, target_path: Path) -> None:
     match obj:
         case Sprite() | Texture2D():
             target_path.parent.mkdir(parents=True, exist_ok=True)
@@ -86,13 +86,13 @@ def convert_from_env(env: Environment, output_dir: Path):
     for object in env.objects:
         if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
-            if isinstance(resource, NamedObject):
-                if resource.container:
-                    target_path = output_dir.joinpath(Path(resource.container).parent, resource.name)
-                else:
-                    target_path = output_dir.joinpath(env.path, resource.name)
+            # Checks for Object instance instead of NamedObject because
+            # some MonoBehaviours are not NamedObjects but still have a name attribute
+            if isinstance(resource, Object) and isinstance(resource.name, str):
+                target_path = output_dir.joinpath(
+                    Path(resource.container).parent if resource.container else env.path,
+                    resource.name
+                )
                 export(resource, target_path)
-            else:
-                print(f"{object.type.name} object at {env.path} is not a NamedObject")
         else:
             print(f"{object.type.name} object at {env.path} was not processed")
