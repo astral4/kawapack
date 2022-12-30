@@ -1,5 +1,5 @@
 from UnityPy import Environment
-from UnityPy.classes import Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
+from UnityPy.classes import Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour, AssetBundle
 from pathlib import Path
 import json
 import bson
@@ -62,17 +62,20 @@ def convert_from_env(env: Environment, output_dir: Path):
 
                 if "gamedata/story" in target_path_str:
                     # Story text is unencrypted, so the data can be directly written
-                    write_bytes(data, target_path)
+                    write_bytes(data, target_path.with_suffix(".txt"))
                 elif "gamedata/levels/" in target_path_str:
                     data = decrypt_textasset(data, 0)
                     write_binary_object(data, target_path)
                 else:
                     try:
+                        # Decryption will fail if the data is not actually encrypted
                         data = decrypt_textasset(data)
                         write_binary_object(data, target_path)
                     except:
-                        # Decryption will fail if the data is not actually encrypted
-                        write_bytes(data, target_path)
+                        try:
+                            write_object(json.loads(data), target_path)
+                        except:
+                            write_bytes(data, target_path)
             
             elif isinstance(resource, AudioClip):
                 target_path = output_dir.joinpath(env.path, resource.name)
@@ -80,8 +83,14 @@ def convert_from_env(env: Environment, output_dir: Path):
                     write_bytes(audio_data, target_path.joinpath(audio_name).with_suffix(".wav"))
             
             elif isinstance(resource, MonoBehaviour):
-                target_path = output_dir.joinpath(env.path, resource.name)
+                if resource.name and not resource.name.isspace():
+                    target_path = output_dir.joinpath(env.path, resource.name)
+                elif object.container:
+                    # TODO: check if this case is necessary
+                    target_path = output_dir.joinpath(object.container)
+                else:
+                    # TODO: explore this case further
+                    print(f"Did not serialize MonoBehaviour at {env.path}")
+                    continue
                 tree = resource.read_typetree()
-                if not tree["m_Name"] or tree["m_Name"].isspace():
-                    target_path = Path(output_dir, str(resource.path_id))
                 write_object(tree, target_path)
