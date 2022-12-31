@@ -2,7 +2,7 @@ from os import PathLike
 from pathlib import Path
 from shutil import rmtree
 from warnings import warn
-import UnityPy
+from UnityPy import Environment
 from PIL import Image
 from .convert_ab import convert_from_env
 
@@ -25,9 +25,8 @@ def convert(input_dir: FilePath, output_dir: FilePath, overwrite: bool = True):
 
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
-            environment = UnityPy.load(path.as_posix())
-            if len(environment.objects) > 0:
-                convert_from_env(environment, output_dir)
+            env = Environment(path.as_posix())
+            convert_from_env(env, output_dir)
 
     combine_textures(output_dir)
 
