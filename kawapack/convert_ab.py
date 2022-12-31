@@ -1,16 +1,14 @@
 from UnityPy import Environment
-from UnityPy.classes import Object, PPtr, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour, GameObject
-from UnityPy.classes.Object import NodeHelper
+from UnityPy.classes import Object, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
 from pathlib import Path
 import json
 import bson
 from Crypto.Cipher import AES
-from typing import Any
 
 
 def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path | None:
-    if isinstance(obj, MonoBehaviour):
-        return output_dir / container_dir / obj.m_Script.read().name
+    if isinstance(obj, MonoBehaviour) and (script := obj.m_Script):
+        return output_dir / container_dir / script.read().name
 
     # NodeHelper instances do not have a name attr, so attr possession must be checked
     if hasattr(obj, "name"):
@@ -62,39 +60,6 @@ def decrypt_textasset(stream: bytes, start_index: int = 128) -> bytes:
     return unpad(decrypted)
 
 
-def traverse_object(obj: Object) -> list[Object]:
-    IGNORED_ATTRS = {"m_GameObject", "m_Father", "m_Script"}
-    results: list[Object] = []
-
-    def traverse(o: Any):
-        if not o:
-            return
-        if isinstance(o, PPtr):
-            o = o.read()
-            results.append(o)
-
-        match o:
-            case list():
-                for attr in o:
-                    traverse(attr)
-            case dict():
-                for attr in o.values():
-                    traverse(attr)
-            case NodeHelper():
-                for name, attr in o.items():
-                    if name not in IGNORED_ATTRS:
-                        traverse(attr)
-            case _:
-                attr_names = dir(o)
-                for attr in attr_names:
-                    if (attr.startswith("m_") or attr == "type_tree") and attr not in IGNORED_ATTRS:
-                        sub_obj = getattr(o, attr)
-                        traverse(sub_obj)
-
-    traverse(obj)
-    return results
-
-
 def export(obj: Object, output_dir: Path, container_dir: Path) -> None:
     target_path = get_target_path(obj, output_dir, container_dir)
     if not target_path:
@@ -102,8 +67,9 @@ def export(obj: Object, output_dir: Path, container_dir: Path) -> None:
 
     match obj:
         case Sprite() | Texture2D():
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-            obj.image.save(target_path.with_suffix(".png"))
+            if (img := obj.image).width > 0:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                img.save(target_path.with_suffix(".png"))
         case TextAsset():
             target_path_str = target_path.as_posix()
             data = bytes(obj.script)
@@ -129,16 +95,11 @@ def export(obj: Object, output_dir: Path, container_dir: Path) -> None:
         case MonoBehaviour():
             tree = obj.read_typetree()
             write_object(tree, target_path)
-        case GameObject():
-            nodes = traverse_object(obj)
-            container_path = container_dir.parent / obj.name
-            for node in nodes:
-                export(node, output_dir, container_path)
 
 
 def convert_from_env(env: Environment, output_dir: Path):
     for object in env.objects:
-        if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour", "GameObject"}:
+        if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
             if isinstance(resource, Object):
                 container_dir = Path(resource.container).parent if resource.container else Path(env.path)
