@@ -8,6 +8,8 @@ from collections.abc import Iterable
 
 
 def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path | None:
+    container_dir = Path(*container_dir.parts[1:])
+
     if isinstance(obj, MonoBehaviour) and (script := obj.m_Script):
         return output_dir / container_dir / script.read().name
 
