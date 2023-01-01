@@ -11,7 +11,7 @@ from .convert_ab import convert_from_env
 FilePath = str | PathLike[str]
 
 
-def convert(input_dir: FilePath, output_dir: FilePath, path_patterns: Iterable[str] | None = None, reset: bool = True):
+def convert(input_dir: FilePath, output_dir: FilePath, path_patterns: Iterable[str] | None = None, show_logs: bool = True, reset: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
@@ -27,7 +27,7 @@ def convert(input_dir: FilePath, output_dir: FilePath, path_patterns: Iterable[s
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
             env = Environment(path.as_posix())
-            convert_from_env(env, output_dir, path_patterns)
+            convert_from_env(env, output_dir, path_patterns, show_logs)
 
     combine_textures(output_dir)
 

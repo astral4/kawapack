@@ -101,7 +101,7 @@ def export(obj: Object, target_path: Path) -> None:
             write_object(tree, target_path)
 
 
-def convert_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None):
+def convert_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None, show_logs: bool):
     for object in env.objects:
         if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
@@ -111,5 +111,5 @@ def convert_from_env(env: Environment, output_dir: Path, path_patterns: Iterable
                 if target_path:
                     if (not path_patterns) or check_pattern_match(target_path.as_posix(), path_patterns):
                         export(resource, target_path)
-        else:
+        elif show_logs:
             print(f"{object.type.name} object at {env.path} was not processed")
