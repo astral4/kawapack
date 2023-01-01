@@ -17,6 +17,13 @@ def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path 
         return output_dir / container_dir / obj.name
 
 
+def check_pattern_match(test_str: str, patterns: Iterable[str]) -> bool:
+    for pattern in patterns:
+        if pattern in test_str:
+            return True
+    return False
+
+
 def write_bytes(data: bytes, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
@@ -94,7 +101,7 @@ def export(obj: Object, target_path: Path) -> None:
             write_object(tree, target_path)
 
 
-def convert_from_env(env: Environment, output_dir: Path, path_start_patterns: Iterable[str]):
+def convert_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None):
     for object in env.objects:
         if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
@@ -103,7 +110,8 @@ def convert_from_env(env: Environment, output_dir: Path, path_start_patterns: It
                 target_path = get_target_path(resource, output_dir, container_dir)
                 if target_path:
                     target_path_str = target_path.as_posix()
-                    if any(map(lambda pat: target_path_str.startswith(pat), path_start_patterns)):
+                    print(target_path_str)
+                    if (not path_patterns) or check_pattern_match(target_path_str, path_patterns):
                         export(resource, target_path)
         else:
             print(f"{object.type.name} object at {env.path} was not processed")
