@@ -8,19 +8,17 @@ from .convert_ab import convert_from_env
 
 FilePath = str | PathLike[str]
 
-def convert(input_dir: FilePath, output_dir: FilePath, overwrite: bool = True):
+def convert(input_dir: FilePath, output_dir: FilePath, reset: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
     if not (input_dir.exists() and input_dir.is_dir()):
         warn("The input directory does not exist.", RuntimeWarning)
         return
-    if not overwrite and output_dir.exists() and output_dir.is_dir():
-        warn("The output directory already exists, and the overwrite setting is set to False.", RuntimeWarning)
-        return
 
-    if output_dir.is_dir():
+    if reset and output_dir.is_dir():
         rmtree(output_dir)
+    
     output_dir.mkdir()
 
     for path in input_dir.glob("**/*.ab"):
