@@ -1,4 +1,5 @@
 from os import PathLike
+from collections.abc import Iterable
 from pathlib import Path
 from shutil import rmtree
 from warnings import warn
@@ -6,9 +7,11 @@ from UnityPy import Environment
 from PIL import Image
 from .convert_ab import convert_from_env
 
+
 FilePath = str | PathLike[str]
 
-def convert(input_dir: FilePath, output_dir: FilePath, reset: bool = True):
+
+def convert(input_dir: FilePath, output_dir: FilePath, path_start_patterns: Iterable[str], reset: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
@@ -24,9 +27,10 @@ def convert(input_dir: FilePath, output_dir: FilePath, reset: bool = True):
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
             env = Environment(path.as_posix())
-            convert_from_env(env, output_dir)
+            convert_from_env(env, output_dir, path_start_patterns)
 
     combine_textures(output_dir)
+
 
 def combine_textures(input_dir: Path):
     for alpha_path in input_dir.glob("**/*_alpha.png"):

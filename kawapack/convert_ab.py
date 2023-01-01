@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import bson
 from Crypto.Cipher import AES
+from collections.abc import Iterable
 
 
 def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path | None:
@@ -60,11 +61,7 @@ def decrypt_textasset(stream: bytes, start_index: int = 128) -> bytes:
     return unpad(decrypted)
 
 
-def export(obj: Object, output_dir: Path, container_dir: Path) -> None:
-    target_path = get_target_path(obj, output_dir, container_dir)
-    if not target_path:
-        return
-
+def export(obj: Object, target_path: Path) -> None:
     match obj:
         case Sprite() | Texture2D():
             if (img := obj.image).width > 0:
@@ -97,12 +94,16 @@ def export(obj: Object, output_dir: Path, container_dir: Path) -> None:
             write_object(tree, target_path)
 
 
-def convert_from_env(env: Environment, output_dir: Path):
+def convert_from_env(env: Environment, output_dir: Path, path_start_patterns: Iterable[str]):
     for object in env.objects:
         if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
             if isinstance(resource, Object):
                 container_dir = Path(resource.container).parent if resource.container else Path(env.path)
-                export(resource, output_dir, container_dir)
+                target_path = get_target_path(resource, output_dir, container_dir)
+                if target_path:
+                    target_path_str = target_path.as_posix()
+                    if any(map(lambda pat: target_path_str.startswith(pat), path_start_patterns)):
+                        export(resource, target_path)
         else:
             print(f"{object.type.name} object at {env.path} was not processed")
