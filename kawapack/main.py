@@ -33,19 +33,23 @@ def convert(input_dir: FilePath, output_dir: FilePath, path_patterns: Iterable[s
 
 
 def combine_textures(input_dir: Path):
-    for alpha_path in input_dir.glob("**/*_alpha.png"):
-        if (rgb_path := alpha_path.with_name(alpha_path.name[:-10]).with_suffix(".png")).exists():
-            target_path = (
-                rgb_path
-                .with_name(rgb_path.name.split("-")[1])
-                .with_suffix(".png")
-            )
+    for alpha_path in input_dir.glob("**/*alpha*.png"):
+        rgb_path = None
+        if alpha_path.name.endswith("_alpha.png"):
+            rgb_path = alpha_path.with_name(alpha_path.name[:-10]).with_suffix(".png")
+        elif alpha_path.name.endswith("[alpha].png"):
+            rgb_path = alpha_path.with_name(alpha_path.name[:-11]).with_suffix(".png")
 
+        if rgb_path and rgb_path.exists():
             rgb_image = Image.open(rgb_path).convert("RGBA")
             alpha_image = Image.open(alpha_path).convert("L")
 
-            rgb_image.putalpha(alpha_image)
-            rgb_image.save(target_path)
+            # RGB and alpha layers should have the same dimensions.
+            # If not, the image data is assumed to be invalid.
+            if rgb_image.size == alpha_image.size:
+                rgb_image.putalpha(alpha_image)
+                rgb_image.save(rgb_path)
+            else:
+                rgb_path.unlink()
 
-            rgb_path.unlink()
             alpha_path.unlink()
