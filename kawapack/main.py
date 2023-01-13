@@ -8,10 +8,10 @@ from PIL import Image
 from .convert_ab import convert_from_env
 
 
-FilePath = str | PathLike[str]
+DirPath = str | PathLike[str]
 
 
-def convert(input_dir: FilePath, output_dir: FilePath, path_patterns: Iterable[str] | None = None, show_logs: bool = True, reset: bool = True):
+def convert(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str] | None = None, show_logs: bool = True, reset: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
