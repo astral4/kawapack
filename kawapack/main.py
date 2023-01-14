@@ -5,17 +5,17 @@ from shutil import rmtree
 from warnings import warn
 from UnityPy import Environment
 from PIL import Image
-from .convert_ab import convert_from_env
+from .extract_ab import extract_from_env
 
 
 DirPath = str | PathLike[str]
 
 
-def convert(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str] | None = None, show_logs: bool = True, reset: bool = True):
+def extract_all(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str] | None = None, show_logs: bool = True, reset: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
-    if not (input_dir.exists() and input_dir.is_dir()):
+    if not input_dir.is_dir():
         warn("The input directory does not exist.", RuntimeWarning)
         return
 
@@ -27,7 +27,7 @@ def convert(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
             env = Environment(path.as_posix())
-            convert_from_env(env, output_dir, path_patterns, show_logs)
+            extract_from_env(env, output_dir, path_patterns, show_logs)
 
     combine_textures(output_dir)
 
@@ -53,7 +53,7 @@ def merge_rgba(rgb_path: Path, alpha_path: Path) -> None:
     alpha_path.unlink()
 
 
-def combine_textures(input_dir: Path):
+def combine_textures(input_dir: Path) -> None:
     ALPHA_SUFFIXES = ("_alpha", "[alpha]", "a")
 
     for alpha_path in input_dir.glob("**/*.png"):

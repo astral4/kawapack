@@ -115,7 +115,7 @@ def export(obj: Object, target_path: Path) -> None:
             write_object(tree, target_path)
 
 
-def convert_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None, show_logs: bool):
+def extract_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None, show_logs: bool):
     for object in env.objects:
         if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
             resource = object.read()
