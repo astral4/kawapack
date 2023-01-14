@@ -13,7 +13,13 @@ from .extract_ab import extract_from_env
 DirPath = str | PathLike[str]
 
 
-def extract_all(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str] | None = None, reset: bool = True):
+def extract_all(
+    input_dir: DirPath,
+    output_dir: DirPath,
+    path_patterns: Iterable[str] | None = None,
+    reset: bool = True,
+    portrait_dir: DirPath | None = None
+) -> None:
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
@@ -32,6 +38,11 @@ def extract_all(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable
             extract_from_env(env, output_dir, path_patterns)
 
     combine_textures(output_dir)
+
+    if portrait_dir and (portrait_dir := Path(portrait_dir)).is_dir():
+        portrait_dir = Path(output_dir, *portrait_dir.parts[1:])
+        data_dir = output_dir / "torappu" / "dynamicassets" / "arts" / "charportraits" / "UIAtlasTextureRef"
+        process_portraits(portrait_dir, data_dir)
 
 
 def get_rgb_path(alpha_path: Path, alpha_suffixes: Iterable[str]) -> Path | None:
@@ -66,9 +77,6 @@ def combine_textures(input_dir: Path) -> None:
 
 
 def extract_portraits_from_image(image_path: Path, sprite_data: list[dict[str, Any]], output_dir: Path) -> None:
-    if not image_path.is_file():
-        return
-
     image = Image.open(image_path)
 
     for sprite in sprite_data:
@@ -96,4 +104,5 @@ def process_portraits(image_dir: Path, data_dir: Path) -> None:
         sprites = portrait_data["_sprites"]
 
         image_path = Path(image_dir, image_name).with_suffix(".png")
-        extract_portraits_from_image(image_path, sprites, image_dir)
+        if image_path.is_file():
+            extract_portraits_from_image(image_path, sprites, image_dir)
