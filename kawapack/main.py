@@ -36,22 +36,30 @@ def get_rgb_path(alpha_path: Path, alpha_suffixes: Iterable[str]) -> Path | None
     for suffix in alpha_suffixes:
         if alpha_path.stem.endswith(suffix):
             return alpha_path.with_stem(alpha_path.stem[:-len(suffix)])
+        
+
+def merge_rgba(rgb_path: Path, alpha_path: Path) -> None:
+    rgb_image = Image.open(rgb_path).convert("RGBA")
+    alpha_image = Image.open(alpha_path).convert("L")
+
+    # RGB and alpha layers should have the same dimensions.
+    # If not, the image data is assumed to be invalid.
+    if rgb_image.size == alpha_image.size:
+        rgb_image.putalpha(alpha_image)
+        rgb_image.save(rgb_path)
+    else:
+        rgb_path.unlink()
+
+    alpha_path.unlink()
 
 
 def combine_textures(input_dir: Path):
     for alpha_path in input_dir.glob("**/*alpha*.png"):
         rgb_path = get_rgb_path(alpha_path, ["_alpha", "[alpha]"])
+        if rgb_path and rgb_path.is_file():
+            merge_rgba(rgb_path, alpha_path)
 
-        if rgb_path and rgb_path.exists():
-            rgb_image = Image.open(rgb_path).convert("RGBA")
-            alpha_image = Image.open(alpha_path).convert("L")
-
-            # RGB and alpha layers should have the same dimensions.
-            # If not, the image data is assumed to be invalid.
-            if rgb_image.size == alpha_image.size:
-                rgb_image.putalpha(alpha_image)
-                rgb_image.save(rgb_path)
-            else:
-                rgb_path.unlink()
-
-            alpha_path.unlink()
+    for alpha_path in input_dir.glob("**/*a.png"):
+        rgb_path = alpha_path.with_stem(alpha_path.stem[:-1])
+        if rgb_path and rgb_path.is_file():
+            merge_rgba(rgb_path, alpha_path)
