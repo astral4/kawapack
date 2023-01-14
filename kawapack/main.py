@@ -32,13 +32,15 @@ def convert(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str
     combine_textures(output_dir)
 
 
+def get_rgb_path(alpha_path: Path, alpha_suffixes: Iterable[str]) -> Path | None:
+    for suffix in alpha_suffixes:
+        if alpha_path.stem.endswith(suffix):
+            return alpha_path.with_stem(alpha_path.stem[:-len(suffix)])
+
+
 def combine_textures(input_dir: Path):
     for alpha_path in input_dir.glob("**/*alpha*.png"):
-        rgb_path = None
-        if alpha_path.stem.endswith("_alpha"):
-            rgb_path = alpha_path.with_stem(alpha_path.stem[:-6])
-        elif alpha_path.stem.endswith("[alpha]"):
-            rgb_path = alpha_path.with_stem(alpha_path.stem[:-7])
+        rgb_path = get_rgb_path(alpha_path, ["_alpha", "[alpha]"])
 
         if rgb_path and rgb_path.exists():
             rgb_image = Image.open(rgb_path).convert("RGBA")
