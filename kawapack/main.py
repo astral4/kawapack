@@ -35,10 +35,10 @@ def convert(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str
 def combine_textures(input_dir: Path):
     for alpha_path in input_dir.glob("**/*alpha*.png"):
         rgb_path = None
-        if alpha_path.name.endswith("_alpha.png"):
-            rgb_path = alpha_path.with_name(alpha_path.name[:-10]).with_suffix(".png")
-        elif alpha_path.name.endswith("[alpha].png"):
-            rgb_path = alpha_path.with_name(alpha_path.name[:-11]).with_suffix(".png")
+        if alpha_path.stem.endswith("_alpha"):
+            rgb_path = alpha_path.with_stem(alpha_path.stem[:-6])
+        elif alpha_path.stem.endswith("[alpha]"):
+            rgb_path = alpha_path.with_stem(alpha_path.stem[:-7])
 
         if rgb_path and rgb_path.exists():
             rgb_image = Image.open(rgb_path).convert("RGBA")
