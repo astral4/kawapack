@@ -102,7 +102,8 @@ def export(obj: Object, target_path: Path) -> None:
             tree = obj.read_typetree()
             # Some MonoBehaviours have the same file path. When this happens,
             # unique file names are generated to prevent overwriting data.
-            if target_path.with_suffix(".json").is_file():
+            if (old_path := target_path.with_suffix(".json")).is_file():
+                old_path.rename(old_path.with_stem(old_path.stem + "_0"))
                 target_path = target_path.with_stem(target_path.stem + "_1")
                 index = 1
                 while target_path.with_suffix(".json").is_file():
