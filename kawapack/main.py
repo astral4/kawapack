@@ -5,13 +5,15 @@ from shutil import rmtree
 from warnings import warn
 from UnityPy import Environment
 from PIL import Image
+import json
+from typing import Any
 from .extract_ab import extract_from_env
 
 
 DirPath = str | PathLike[str]
 
 
-def extract_all(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str] | None = None, show_logs: bool = True, reset: bool = True):
+def extract_all(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable[str] | None = None, reset: bool = True):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
@@ -27,7 +29,7 @@ def extract_all(input_dir: DirPath, output_dir: DirPath, path_patterns: Iterable
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
             env = Environment(path.as_posix())
-            extract_from_env(env, output_dir, path_patterns, show_logs)
+            extract_from_env(env, output_dir, path_patterns)
 
     combine_textures(output_dir)
 
@@ -61,3 +63,37 @@ def combine_textures(input_dir: Path) -> None:
             rgb_path = get_rgb_path(alpha_path, ALPHA_SUFFIXES)
             if rgb_path and rgb_path.is_file():
                 merge_rgba(rgb_path, alpha_path)
+
+
+def extract_portraits_from_image(image_path: Path, sprite_data: list[dict[str, Any]], output_dir: Path) -> None:
+    if not image_path.is_file():
+        return
+
+    image = Image.open(image_path)
+
+    for sprite in sprite_data:
+        rect = sprite["rect"]
+        portrait = image.crop((
+            rect["x"],
+            image.height - (rect["y"] + rect["h"]),
+            rect["x"] + rect["w"],
+            image.height - rect["y"]
+        ))
+        if sprite["rotate"]:
+            portrait = portrait.transpose(method=Image.ROTATE_270)
+
+        target_path = Path(output_dir, sprite["name"]).with_suffix(".png")
+        portrait.save(target_path)
+
+    image_path.unlink()
+
+
+def process_portraits(image_dir: Path, data_dir: Path) -> None:
+    for data_path in data_dir.glob("*.json"):
+        with open(data_path, "r") as f:
+            portrait_data = json.load(f)
+        image_name = portrait_data["m_Name"]
+        sprites = portrait_data["_sprites"]
+
+        image_path = Path(image_dir, image_name).with_suffix(".png")
+        extract_portraits_from_image(image_path, sprites, image_dir)
