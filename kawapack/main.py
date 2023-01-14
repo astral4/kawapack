@@ -54,12 +54,10 @@ def merge_rgba(rgb_path: Path, alpha_path: Path) -> None:
 
 
 def combine_textures(input_dir: Path):
-    for alpha_path in input_dir.glob("**/*alpha*.png"):
-        rgb_path = get_rgb_path(alpha_path, ["_alpha", "[alpha]"])
-        if rgb_path and rgb_path.is_file():
-            merge_rgba(rgb_path, alpha_path)
+    ALPHA_SUFFIXES = ("_alpha", "[alpha]", "a")
 
-    for alpha_path in input_dir.glob("**/*a.png"):
-        rgb_path = alpha_path.with_stem(alpha_path.stem[:-1])
-        if rgb_path and rgb_path.is_file():
-            merge_rgba(rgb_path, alpha_path)
+    for alpha_path in input_dir.glob("**/*.png"):
+        if alpha_path.stem.endswith(ALPHA_SUFFIXES):
+            rgb_path = get_rgb_path(alpha_path, ALPHA_SUFFIXES)
+            if rgb_path and rgb_path.is_file():
+                merge_rgba(rgb_path, alpha_path)
