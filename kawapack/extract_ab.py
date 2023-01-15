@@ -96,8 +96,8 @@ def export(obj: Object, target_path: Path) -> None:
                     except:
                         write_bytes(data, target_path)
         case AudioClip():
-            for audio_name, audio_data in obj.samples.items():
-                write_bytes(audio_data, target_path.joinpath(audio_name).with_suffix(".wav"))
+            for name, sample in obj.samples.items():
+                write_bytes(sample, target_path.joinpath(name).with_suffix(".wav"))
         case MonoBehaviour():
             tree = obj.read_typetree()
 
