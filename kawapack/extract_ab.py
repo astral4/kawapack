@@ -100,6 +100,10 @@ def export(obj: Object, target_path: Path) -> None:
                 write_bytes(audio_data, target_path.joinpath(audio_name).with_suffix(".wav"))
         case MonoBehaviour():
             tree = obj.read_typetree()
+
+            if not obj.name:
+                return
+
             target_path = Path(target_path, obj.name).with_suffix(".json")
             # Some MonoBehaviours have the same file path. When this happens,
             # unique file names are generated to prevent overwriting data.
