@@ -93,7 +93,7 @@ def extract_portraits_from_image(image_path: Path, sprite_data: list[dict[str, A
         if sprite["rotate"]:
             portrait = portrait.transpose(method=Image.ROTATE_270)
 
-        target_path = Path(output_dir, sprite["name"]).with_suffix(".png")
+        target_path = output_dir.joinpath(sprite["name"]).with_suffix(".png")
         portrait.save(target_path)
 
     image_path.unlink()
@@ -106,6 +106,6 @@ def process_portraits(image_dir: Path, data_dir: Path) -> None:
         image_name = portrait_data["m_Name"]
         sprites = portrait_data["_sprites"]
 
-        image_path = Path(image_dir, image_name).with_suffix(".png")
+        image_path = image_dir.joinpath(image_name).with_suffix(".png")
         if image_path.is_file():
             extract_portraits_from_image(image_path, sprites, image_dir)

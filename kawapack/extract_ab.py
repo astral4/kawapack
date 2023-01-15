@@ -76,6 +76,7 @@ def export(obj: Object, target_path: Path) -> None:
             if (img := obj.image).width > 0:
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 img.save(target_path.with_suffix(".png"))
+
         case TextAsset():
             target_path_str = target_path.as_posix()
             data = bytes(obj.script)
@@ -95,18 +96,24 @@ def export(obj: Object, target_path: Path) -> None:
                         write_object(json.loads(data), target_path)
                     except:
                         write_bytes(data, target_path)
+
         case AudioClip():
             for name, sample in obj.samples.items():
-                write_bytes(sample, target_path.joinpath(name).with_suffix(".wav"))
+                audio_path = target_path.with_suffix(".wav")
+                if audio_path.name != name:
+                    audio_path = target_path.joinpath(name).with_suffix(".wav")
+
+                write_bytes(sample, audio_path)
+
         case MonoBehaviour():
             tree = obj.read_typetree()
-
             if not obj.name:
                 return
 
-            target_path = Path(target_path, obj.name).with_suffix(".json")
-            # Some MonoBehaviours have the same file path. When this happens,
-            # unique file names are generated to prevent overwriting data.
+            target_path = target_path.joinpath(obj.name).with_suffix(".json")
+
+            # If MonoBehaviours have identical file paths, unique
+            # file names are generated to prevent overwriting data.
             if target_path.is_file():
                 target_path.rename(target_path.with_stem(target_path.stem + "_0"))
                 target_path = target_path.with_stem(target_path.stem + "_1")
