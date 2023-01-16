@@ -2,12 +2,12 @@ from UnityPy import Environment
 from UnityPy.classes import Object, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
 from UnityPy.enums import ClassIDType as Obj
 from pathlib import Path
+from collections.abc import Iterable
 import json
 import bson
 from Crypto.Cipher import AES
 from fsb5 import FSB5
 from warnings import warn
-from collections.abc import Iterable
 
 
 def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path:
