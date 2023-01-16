@@ -4,6 +4,8 @@ from pathlib import Path
 import json
 import bson
 from Crypto.Cipher import AES
+from fsb5 import FSB5
+from warnings import warn
 from collections.abc import Iterable
 
 
@@ -98,12 +100,18 @@ def export(obj: Object, target_path: Path) -> None:
                         write_bytes(data, target_path)
 
         case AudioClip():
-            for name, sample in obj.samples.items():
-                audio_path = target_path.with_suffix(".wav")
-                if audio_path.name != name:
-                    audio_path = target_path.joinpath(name).with_suffix(".wav")
+            fsb = FSB5(obj.m_AudioData)
+            assert len(fsb.samples) == 1
+            target_path = target_path.with_suffix("." + fsb.get_sample_extension())
 
-                write_bytes(sample, audio_path)
+            try:
+                # Audio clip conversion will fail if DLLs needed by fsb5
+                # (libogg, libvorbis, libvorbisenc, libvorbisfile) cannot be found
+                # or the CRC32 value associated with the file format is incorrect.
+                sample = fsb.rebuild_sample(fsb.samples[0])
+                write_bytes(sample, target_path)
+            except:
+                warn(f"Failed to save audio clip to {target_path}", RuntimeWarning)
 
         case MonoBehaviour():
             tree = obj.read_typetree()
