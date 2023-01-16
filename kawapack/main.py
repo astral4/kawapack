@@ -40,12 +40,12 @@ def extract_all(
     combine_textures(output_dir)
 
     if portrait_dir:
-        if (portrait_dir := Path(portrait_dir)).is_dir():
+        data_dir = output_dir / "torappu" / "dynamicassets" / "arts" / "charportraits" / "UIAtlasTextureRef"
+        if (portrait_dir := Path(portrait_dir)).is_dir() and data_dir.is_dir():
             portrait_dir = Path(output_dir, *portrait_dir.parts[1:])
-            data_dir = output_dir / "torappu" / "dynamicassets" / "arts" / "charportraits" / "UIAtlasTextureRef"
             process_portraits(portrait_dir, data_dir)
         else:
-            warn("A portrait directory was specified, but it does not exist.", RuntimeWarning)
+            warn("A portrait extraction directory was specified, but necessary files were not found.", RuntimeWarning)
 
 
 def get_rgb_path(alpha_path: Path, alpha_suffixes: Iterable[str]) -> Path | None:

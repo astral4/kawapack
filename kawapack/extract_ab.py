@@ -1,5 +1,6 @@
 from UnityPy import Environment
 from UnityPy.classes import Object, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
+from UnityPy.enums import ClassIDType as Obj
 from pathlib import Path
 import json
 import bson
@@ -15,10 +16,8 @@ def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path 
     if isinstance(obj, MonoBehaviour) and (script := obj.m_Script):
         return output_dir / container_dir / script.read().name
 
-    # NodeHelper instances do not have a name attr, so attr possession must be checked
-    if hasattr(obj, "name"):
-        assert isinstance(obj.name, str)
-        return output_dir / container_dir / obj.name
+    assert isinstance(obj.name, str)
+    return output_dir / container_dir / obj.name
 
 
 def check_pattern_match(test_str: str, patterns: Iterable[str]) -> bool:
@@ -136,7 +135,7 @@ def export(obj: Object, target_path: Path) -> None:
 
 def extract_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None):
     for object in env.objects:
-        if object.type.name in {"Sprite", "Texture2D", "TextAsset", "AudioClip", "MonoBehaviour"}:
+        if object.type in {Obj.Sprite, Obj.Texture2D, Obj.TextAsset, Obj.AudioClip, Obj.MonoBehaviour}:
             resource = object.read()
             if isinstance(resource, Object):
                 container_dir = Path(resource.container).parent if resource.container else Path(env.path)
