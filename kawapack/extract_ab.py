@@ -10,7 +10,7 @@ from warnings import warn
 from collections.abc import Iterable
 
 
-def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path | None:
+def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path:
     container_dir = Path(*container_dir.parts[1:])
 
     if isinstance(obj, MonoBehaviour) and (script := obj.m_Script):
@@ -140,6 +140,5 @@ def extract_from_env(env: Environment, output_dir: Path, path_patterns: Iterable
             if isinstance(resource, Object):
                 container_dir = Path(resource.container).parent if resource.container else Path(env.path)
                 target_path = get_target_path(resource, output_dir, container_dir)
-                if target_path:
-                    if (not path_patterns) or check_pattern_match(target_path.as_posix(), path_patterns):
-                        export(resource, target_path)
+                if (not path_patterns) or check_pattern_match(target_path.as_posix(), path_patterns):
+                     export(resource, target_path)
