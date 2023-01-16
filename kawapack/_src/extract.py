@@ -141,4 +141,4 @@ def extract_from_env(env: Environment, output_dir: Path, path_patterns: Iterable
                 container_dir = Path(resource.container).parent if resource.container else Path(env.path)
                 target_path = get_target_path(resource, output_dir, container_dir)
                 if (not path_patterns) or check_pattern_match(target_path.as_posix(), path_patterns):
-                     export(resource, target_path)
+                    export(resource, target_path)
