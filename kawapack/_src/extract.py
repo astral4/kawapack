@@ -84,8 +84,7 @@ def export(obj: Object, target_path: Path) -> None:
                 write_bytes(data, target_path.with_suffix(".txt"))
             elif "gamedata/levels/" in target_path_str:
                 try:
-                    # Level data on US server is encrypted. On CN server,
-                    # level data is not encrypted, so decryption attempts will fail.
+                    # Level data is only encrypted for US server. Attempts to decrypt CN data will fail.
                     data = decrypt_textasset(data)
                     write_binary_object(data, target_path)
                 except:
