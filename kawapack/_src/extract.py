@@ -48,24 +48,22 @@ def write_binary_object(data: bytes, path: Path) -> None:
         write_object(json.loads(data), path)
 
 
-def decrypt_textasset(stream: bytes, start_index: int = 128) -> bytes:
-    BITMASK = bytes.fromhex('554954704169383270484157776e7a7148524d4377506f6e4a4c49423357436c').decode()
-
+def decrypt_textasset(stream: bytes) -> bytes:
     def unpad(data: bytes) -> bytes:
         end_index = len(data) - data[-1]
         return data[:end_index]
 
-    data = stream[start_index:]
+    CHAT_MASK = bytes.fromhex('554954704169383270484157776e7a7148524d4377506f6e4a4c49423357436c').decode()
 
-    aes_key = BITMASK[:16].encode()
+    aes_key = CHAT_MASK[:16].encode()
     aes_iv = bytearray(
         buffer_bit ^ mask_bit
-        for (buffer_bit, mask_bit) in zip(data[:16], BITMASK[16:].encode())
+        for (buffer_bit, mask_bit) in zip(stream[:16], CHAT_MASK[16:].encode())
     )
 
     decrypted = (
         AES.new(aes_key, AES.MODE_CBC, aes_iv)
-        .decrypt(data[16:])
+        .decrypt(stream[16:])
     )
 
     return unpad(decrypted)
@@ -82,15 +80,25 @@ def export(obj: Object, target_path: Path) -> None:
             target_path_str = target_path.as_posix()
             data = bytes(obj.script)
             if "gamedata/story" in target_path_str:
-                # Story text is unencrypted, so the data can be directly written
+                # Story text is unencrypted, so the data can be saved without further changes
                 write_bytes(data, target_path.with_suffix(".txt"))
             elif "gamedata/levels/" in target_path_str:
-                data = decrypt_textasset(data, 0)
-                write_binary_object(data, target_path)
+                try:
+                    # Level data on US server is encrypted. On CN server,
+                    # level data is not encrypted, so decryption attempts will fail.
+                    data = decrypt_textasset(data)
+                    write_binary_object(data, target_path)
+                except:
+                    try:
+                        # Extraneous starting bytes must be removed before attempting to parse as BSON
+                        write_binary_object(data[128:], target_path)
+                    except:
+                        warn(f"Failed to save data to {target_path}", RuntimeWarning)
             else:
                 try:
                     # Decryption will fail if the data is not actually encrypted
-                    data = decrypt_textasset(data)
+                    # Extraneous starting bytes must be removed before attempting decryption
+                    data = decrypt_textasset(data[128:])
                     write_binary_object(data, target_path)
                 except:
                     try:
