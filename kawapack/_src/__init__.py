@@ -19,6 +19,7 @@ def extract_all(
     output_dir: DirPath,
     path_patterns: Iterable[str] | None = None,
     reset: bool = True,
+    clean_up: bool = False,
     portrait_dir: DirPath | None = None
 ) -> None:
     input_dir = Path(input_dir)
@@ -37,6 +38,8 @@ def extract_all(
         if path.is_file():
             env = Environment(path.as_posix())
             extract_from_env(env, output_dir, path_patterns)
+            if clean_up:
+                path.unlink()
 
     combine_textures(output_dir)
 
