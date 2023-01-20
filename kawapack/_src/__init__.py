@@ -1,16 +1,24 @@
 from os import PathLike
+from typing import BinaryIO
 from pathlib import Path
 from warnings import warn
 from shutil import rmtree
 from UnityPy import Environment
-from .extract import extract_from_env
+from .unpack import extract_from_env
 from .image import combine_textures, process_portraits
 
 
-__all__ = ["extract_all", "DirPath"]
+__all__ = ["extract", "extract_all", "DirPath"]
 
 
 DirPath = str | PathLike[str]
+
+
+def extract(data: BinaryIO, source_dir: DirPath, output_dir: DirPath) -> None:
+    output_dir = Path(output_dir)
+    if not output_dir.is_dir():
+        output_dir.mkdir()
+    extract_from_env(Environment(data), output_dir, Path(source_dir))
 
 
 def extract_all(

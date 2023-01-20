@@ -9,6 +9,17 @@ from fsb5 import FSB5
 from warnings import warn
 
 
+def get_container_dir(obj: Object, env: Environment, source_dir: Path | None = None) -> Path:
+    if obj.container:
+        return Path(obj.container).parent
+    elif env.path:
+        return Path(env.path)
+    elif source_dir:
+        return Path("foo", source_dir)
+    else:
+        return Path("")
+
+
 def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path:
     container_dir = Path(*container_dir.parts[1:])
 
@@ -136,11 +147,11 @@ def export(obj: Object, target_path: Path) -> None:
             write_object(tree, target_path)
 
 
-def extract_from_env(env: Environment, output_dir: Path):
+def extract_from_env(env: Environment, output_dir: Path, source_dir: Path | None = None):
     for object in env.objects:
         if object.type in {Obj.Sprite, Obj.Texture2D, Obj.TextAsset, Obj.AudioClip, Obj.MonoBehaviour}:
             resource = object.read()
             if isinstance(resource, Object):
-                container_dir = Path(resource.container).parent if resource.container else Path(env.path)
+                container_dir = get_container_dir(resource, env, source_dir)
                 target_path = get_target_path(resource, output_dir, container_dir)
                 export(resource, target_path)
