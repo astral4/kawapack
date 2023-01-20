@@ -1,5 +1,4 @@
 from os import PathLike
-from collections.abc import Iterable
 from pathlib import Path
 from warnings import warn
 from shutil import rmtree

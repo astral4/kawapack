@@ -2,7 +2,6 @@ from UnityPy import Environment
 from UnityPy.classes import Object, Sprite, Texture2D, TextAsset, AudioClip, MonoBehaviour
 from UnityPy.enums import ClassIDType as Obj
 from pathlib import Path
-from collections.abc import Iterable
 import json
 import bson
 from Crypto.Cipher import AES
