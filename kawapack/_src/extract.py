@@ -20,13 +20,6 @@ def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path:
     return output_dir / container_dir / obj.name
 
 
-def check_pattern_match(test_str: str, patterns: Iterable[str]) -> bool:
-    for pattern in patterns:
-        if pattern in test_str:
-            return True
-    return False
-
-
 def write_bytes(data: bytes, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
@@ -93,6 +86,10 @@ def export(obj: Object, target_path: Path) -> None:
                         write_binary_object(data[128:], target_path)
                     except:
                         warn(f"Failed to save data to {target_path}", RuntimeWarning)
+                        # if "obt/memory" in target_path_str:
+                        #     data = decrypt_textasset(data[(256 + len(data) % 16):])
+                        #     ...
+                        # write_bytes(data, target_path)
             else:
                 try:
                     # Decryption will fail if the data is not actually encrypted
@@ -140,12 +137,11 @@ def export(obj: Object, target_path: Path) -> None:
             write_object(tree, target_path)
 
 
-def extract_from_env(env: Environment, output_dir: Path, path_patterns: Iterable[str] | None):
+def extract_from_env(env: Environment, output_dir: Path):
     for object in env.objects:
         if object.type in {Obj.Sprite, Obj.Texture2D, Obj.TextAsset, Obj.AudioClip, Obj.MonoBehaviour}:
             resource = object.read()
             if isinstance(resource, Object):
                 container_dir = Path(resource.container).parent if resource.container else Path(env.path)
                 target_path = get_target_path(resource, output_dir, container_dir)
-                if (not path_patterns) or check_pattern_match(target_path.as_posix(), path_patterns):
-                    export(resource, target_path)
+                export(resource, target_path)

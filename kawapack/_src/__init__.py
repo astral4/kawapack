@@ -17,7 +17,6 @@ DirPath = str | PathLike[str]
 def extract_all(
     input_dir: DirPath,
     output_dir: DirPath,
-    path_patterns: Iterable[str] | None = None,
     reset: bool = True,
     clean_up: bool = False,
     portrait_dir: DirPath | None = None
@@ -37,7 +36,7 @@ def extract_all(
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
             env = Environment(path.as_posix())
-            extract_from_env(env, output_dir, path_patterns)
+            extract_from_env(env, output_dir)
             if clean_up:
                 path.unlink()
 
