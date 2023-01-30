@@ -25,7 +25,6 @@ def extract_all(
     input_dir: DirPath,
     output_dir: DirPath,
     reset: bool = True,
-    clean_up: bool = False,
     portrait_dir: DirPath | None = None
 ) -> None:
     input_dir = Path(input_dir)
@@ -44,8 +43,6 @@ def extract_all(
         if path.is_file():
             with open(path, "rb") as bundle:
                 extract_from_env(Environment(bundle), path.parent, output_dir)
-            if clean_up:
-                path.unlink()
 
     combine_textures(output_dir)
 
