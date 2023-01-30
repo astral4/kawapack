@@ -20,6 +20,19 @@ def get_target_path(obj: Object, source_dir: Path, output_dir: Path) -> Path:
     return output_dir / source_dir / obj.name
 
 
+# Some assets have identical file paths, so unique
+# file names are generated to prevent overwriting data.
+def get_available_path(path: Path) -> Path:
+    if path.is_file():
+        path = path.with_stem(path.stem + "_1")
+        index = 1
+        while path.is_file():
+            index += 1
+            new_name = f"_{index}".join(path.stem.rsplit(f"_{index-1}", 1))
+            path = path.with_stem(new_name)
+    return path
+
+
 def write_bytes(data: bytes, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
@@ -66,8 +79,9 @@ def export(obj: Object, target_path: Path) -> None:
     match obj:
         case Sprite() | Texture2D():
             if (img := obj.image).width > 0:
+                target_path = get_available_path(target_path.with_suffix(".png"))
                 target_path.parent.mkdir(parents=True, exist_ok=True)
-                img.save(target_path.with_suffix(".png"))
+                img.save(target_path)
 
         case TextAsset():
             target_path_str = target_path.as_posix()
@@ -117,24 +131,12 @@ def export(obj: Object, target_path: Path) -> None:
                 warn(f"Failed to save audio clip to {target_path}", RuntimeWarning)
 
         case MonoBehaviour():
-            tree = obj.read_typetree()
-            if not obj.name:
-                return
-
-            target_path = target_path.joinpath(obj.name).with_suffix(".json")
-
-            # If MonoBehaviours have identical file paths, unique
-            # file names are generated to prevent overwriting data.
-            if target_path.is_file():
-                target_path.rename(target_path.with_stem(target_path.stem + "_0"))
-                target_path = target_path.with_stem(target_path.stem + "_1")
-                index = 1
-                while target_path.is_file():
-                    index += 1
-                    new_name = f"_{index}".join(target_path.stem.rsplit(f"_{index-1}", 1))
-                    target_path = target_path.with_stem(new_name)
-
-            write_object(tree, target_path)
+            if obj.name:
+                tree = obj.read_typetree()
+                target_path = get_available_path(
+                    target_path.joinpath(obj.name).with_suffix(".json")
+                )
+                write_object(tree, target_path)
 
 
 def extract_from_env(env: Environment, source_dir: Path, output_dir: Path):
