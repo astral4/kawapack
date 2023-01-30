@@ -581,4 +581,4 @@ texture2ddecoder = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "e8cacb8ec0c9d7af6bb87a3c2ed1d005cee203536fa21434fad67fc1df91f835"
+content-hash = "f2053ee6dd17075db4e2e1af2586619bf15080cce9f59cf494effda72e6115cb"

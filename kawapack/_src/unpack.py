@@ -9,25 +9,15 @@ from fsb5 import FSB5
 from warnings import warn
 
 
-def get_container_dir(obj: Object, env: Environment, source_dir: Path | None = None) -> Path:
+def get_target_path(obj: Object, source_dir: Path, output_dir: Path) -> Path:
     if obj.container:
-        return Path(obj.container).parent
-    elif env.path:
-        return Path(env.path)
-    elif source_dir:
-        return Path("foo", source_dir)
-    else:
-        return Path("")
-
-
-def get_target_path(obj: Object, output_dir: Path, container_dir: Path) -> Path:
-    container_dir = Path(*container_dir.parts[1:])
+        source_dir = Path(*Path(obj.container).parts[1:-1])
 
     if isinstance(obj, MonoBehaviour) and (script := obj.m_Script):
-        return output_dir / container_dir / script.read().name
+        return output_dir / source_dir / script.read().name
 
     assert isinstance(obj.name, str)
-    return output_dir / container_dir / obj.name
+    return output_dir / source_dir / obj.name
 
 
 def write_bytes(data: bytes, path: Path) -> None:
@@ -147,11 +137,10 @@ def export(obj: Object, target_path: Path) -> None:
             write_object(tree, target_path)
 
 
-def extract_from_env(env: Environment, output_dir: Path, source_dir: Path | None = None):
+def extract_from_env(env: Environment, source_dir: Path, output_dir: Path):
     for object in env.objects:
         if object.type in {Obj.Sprite, Obj.Texture2D, Obj.TextAsset, Obj.AudioClip, Obj.MonoBehaviour}:
             resource = object.read()
             if isinstance(resource, Object):
-                container_dir = get_container_dir(resource, env, source_dir)
-                target_path = get_target_path(resource, output_dir, container_dir)
+                target_path = get_target_path(resource, source_dir, output_dir)
                 export(resource, target_path)

@@ -18,7 +18,7 @@ def extract(data: BinaryIO, source_dir: DirPath, output_dir: DirPath) -> None:
     output_dir = Path(output_dir)
     if not output_dir.is_dir():
         output_dir.mkdir()
-    extract_from_env(Environment(data), output_dir, Path(source_dir))
+    extract_from_env(Environment(data), Path(source_dir), output_dir)
 
 
 def extract_all(
@@ -42,8 +42,8 @@ def extract_all(
 
     for path in input_dir.glob("**/*.ab"):
         if path.is_file():
-            env = Environment(path.as_posix())
-            extract_from_env(env, output_dir)
+            with open(path, "rb") as bundle:
+                extract_from_env(Environment(bundle), path.parent, output_dir)
             if clean_up:
                 path.unlink()
 
