@@ -140,9 +140,18 @@ def export(obj: Object, target_path: Path) -> None:
 
 
 def extract_from_env(env: Environment, source_dir: Path, output_dir: Path):
-    for object in env.objects:
-        if object.type in {Obj.Sprite, Obj.Texture2D, Obj.TextAsset, Obj.AudioClip, Obj.MonoBehaviour}:
-            resource = object.read()
-            if isinstance(resource, Object):
-                target_path = get_target_path(resource, source_dir, output_dir)
-                export(resource, target_path)
+    source_path_parts = set(source_dir.parts)
+    if "chararts" in source_path_parts or "skinpack" in source_path_parts:
+        for object in env.objects:
+            if object.type == Obj.Texture2D:
+                resource = object.read()
+                if isinstance(resource, Texture2D) and resource.m_Width > 512 and resource.m_Height > 512:
+                    target_path = get_target_path(resource, source_dir, output_dir)
+                    export(resource, target_path)
+    else:
+        for object in env.objects:
+            if object.type in {Obj.Sprite, Obj.Texture2D, Obj.TextAsset, Obj.AudioClip, Obj.MonoBehaviour}:
+                resource = object.read()
+                if isinstance(resource, Object):
+                    target_path = get_target_path(resource, source_dir, output_dir)
+                    export(resource, target_path)
