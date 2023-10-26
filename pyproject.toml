@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "kawapack"
-version = "0.15.2"
+version = "0.15.3"
 description = "Utility for extracting Arknights assets"
 authors = ["astral4 <88992929+astral4@users.noreply.github.com>"]
 license = "AGPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-UnityPy = "^1.10.3"
-Pillow = "^9.5.0"
+UnityPy = "^1.10.6"
+Pillow = "^10.1.0"
 pycryptodome = "^3.19.0"
 pymongo = "^4.5.0"
 fsb5 = "^1.0"
